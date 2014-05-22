@@ -233,3 +233,21 @@ end
 
 % Comment something here so it looks green
 sleep_results'
+
+%% Sleep Bout calculation
+sleep_bout_num=zeros(n_sleep_bounds,32);
+sleep_bout_length=zeros(n_sleep_bounds,32);
+
+for i=1:32
+    for j=1:n_sleep_bounds
+        tempsleepvec=sleep_mat(sleep_bounds(j,1):sleep_bounds(j,2),i);
+        tempsleepchainmat=chainfinder(tempsleepvec);
+        sleep_bout_num(j,i)=size(tempsleepchainmat,1);
+        sleep_bout_length(j,i)=mean(tempsleepchainmat(:,2))*5;
+    end
+end
+disp('Sleep bout numbers:')
+sleep_bout_num'
+
+disp('Sleep bout lengths:')
+sleep_bout_length'

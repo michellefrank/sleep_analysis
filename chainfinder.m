@@ -28,7 +28,7 @@ for i=2:n_num
             % If the entry is not the same as before, start a new chain.
             chain_ind=chain_ind+1;
             chainmat(chain_ind,1)=i;
-            chainmat(chain_ind,2)=0;
+            chainmat(chain_ind,2)=1;
         else
             % If the entry is the same as before, add 1 to the length
             chainmat(chain_ind,2)=chainmat(chain_ind,2)+1;
