@@ -112,8 +112,10 @@ for i=2:n_days-1
     mat_bounds(i,1)=mat_bounds(i-1,2)+1;
     mat_bounds(i,2)=mat_bounds(i-1,2)+288;
 end
-mat_bounds(n_days,1)=mat_bounds(n_days-1,2)+1;
-mat_bounds(n_days,2)=n_bins;
+if n_days>1
+    mat_bounds(n_days,1)=mat_bounds(n_days-1,2)+1;
+    mat_bounds(n_days,2)=n_bins;
+end
 
 % Calculate the bounds, in terms of time stamps, for each day's data
 time_bounds=zeros(n_days,2);
@@ -196,11 +198,13 @@ end
 
 % Determine the sleep bounds
 sleep_bounds=zeros(n_sleep_bounds,2);
-sleep_bounds(1,1)=mat_bounds(2,1);
-sleep_bounds(1,2)=sleep_bounds(1,1)+143;
-for i=2:n_sleep_bounds
-    sleep_bounds(i,1)=sleep_bounds(i-1,2)+1;
-    sleep_bounds(i,2)=sleep_bounds(i,1)+143;
+if n_days>1
+    sleep_bounds(1,1)=mat_bounds(2,1);
+    sleep_bounds(1,2)=sleep_bounds(1,1)+143;
+    for i=2:n_sleep_bounds
+        sleep_bounds(i,1)=sleep_bounds(i-1,2)+1;
+        sleep_bounds(i,2)=sleep_bounds(i,1)+143;
+    end
 end
 sleep_bounds(n_sleep_bounds,2)=n_bins;
 
