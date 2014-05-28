@@ -237,6 +237,7 @@ end
 
 % Comment something here so it looks green
 sleep_results'
+xlswrite(fullfile(export_path,[filename(1:end-4),'_sleep_results.xls']),sleep_results');
 
 %% Sleep bout and activity calculations
 % Green will be added later
@@ -260,9 +261,12 @@ for i=1:32
 end
 disp('Sleep bout numbers:')
 sleep_bout_num'
+xlswrite(fullfile(export_path,[filename(1:end-4),'_sleep_bout_num.xls']),sleep_bout_num');
 
 disp('Sleep bout lengths:')
 sleep_bout_length'
+xlswrite(fullfile(export_path,[filename(1:end-4),'_sleep_bout_lengths.xls']),sleep_bout_length');
 
 disp('Activities')
 activity_mat'
+xlswrite(fullfile(export_path,[filename(1:end-4),'_activity.xls']),activity_mat');
