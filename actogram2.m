@@ -246,7 +246,7 @@ for i=1:32
         tempactivityvec=oblonsky_binned_data(sleep_bounds(j,1):sleep_bounds(j,2),i);
         tempsleepchainmat=chainfinder(tempsleepvec);
         sleep_bout_num(j,i)=size(tempsleepchainmat,1);
-        if sum(tempsleepchainmat(:,2))~=0
+        if ~isempty(tempsleepchainmat)
             sleep_bout_length(j,i)=mean(tempsleepchainmat(:,2))*5;
         else
             sleep_bout_length(j,i)=0;
