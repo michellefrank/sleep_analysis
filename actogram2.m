@@ -235,6 +235,7 @@ end
 sleep_results'
 
 %% Sleep bout and activity calculations
+% Green will be added later
 sleep_bout_num=zeros(n_sleep_bounds,32);
 sleep_bout_length=zeros(n_sleep_bounds,32);
 activity_mat=zeros(n_sleep_bounds,32);
@@ -245,7 +246,11 @@ for i=1:32
         tempactivityvec=oblonsky_binned_data(sleep_bounds(j,1):sleep_bounds(j,2),i);
         tempsleepchainmat=chainfinder(tempsleepvec);
         sleep_bout_num(j,i)=size(tempsleepchainmat,1);
-        sleep_bout_length(j,i)=mean(tempsleepchainmat(:,2))*5;
+        if sum(tempsleepchainmat(:,2))~=0
+            sleep_bout_length(j,i)=mean(tempsleepchainmat(:,2))*5;
+        else
+            sleep_bout_length(j,i)=0;
+        end
         activity_mat(j,i)=mean(tempactivityvec(tempsleepvec==0));
     end
 end
