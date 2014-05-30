@@ -240,25 +240,42 @@ sleep_results'
 xlswrite(fullfile(export_path,[filename(1:end-4),'_sleep_results.xls']),sleep_results');
 
 %% Sleep bout and activity calculations
-% Green will be added later
+% Initiate the matrices to store sleep bout numbers, lengths and activities
 sleep_bout_num=zeros(n_sleep_bounds,32);
 sleep_bout_length=zeros(n_sleep_bounds,32);
 activity_mat=zeros(n_sleep_bounds,32);
 
+% For each fly loaded, do the following...
 for i=1:32
     for j=1:n_sleep_bounds
+        % Grab the sleep binary vector for that fly
         tempsleepvec=sleep_mat(sleep_bounds(j,1):sleep_bounds(j,2),i);
+        
+        % Grab the activity vector for that fly
         tempactivityvec=oblonsky_binned_data(sleep_bounds(j,1):sleep_bounds(j,2),i);
+        
+        % Use the function "chainfinder" to find sleep bouts
+        % See the function description for the explanation of the function output
         tempsleepchainmat=chainfinder(tempsleepvec);
+        
+        % Obtain the number of bouts from the chainfinder results
         sleep_bout_num(j,i)=size(tempsleepchainmat,1);
+        
+        % If chainfinder finds no chains, the sleep bout length is 0,
+        % otherwise calculate the mean bout length
         if ~isempty(tempsleepchainmat)
             sleep_bout_length(j,i)=mean(tempsleepchainmat(:,2))*5;
         else
             sleep_bout_length(j,i)=0;
         end
+        
+        % Calculate the average walking activity for that fly from the
+        % activity vector
         activity_mat(j,i)=mean(tempactivityvec(tempsleepvec==0));
     end
 end
+
+% Output the sleep bout numbers, lengths and activities to xls (the function csvwrite does not work very well for S. M shoud try it.)
 disp('Sleep bout numbers:')
 sleep_bout_num'
 xlswrite(fullfile(export_path,[filename(1:end-4),'_sleep_bout_num.xls']),sleep_bout_num');
@@ -270,3 +287,8 @@ xlswrite(fullfile(export_path,[filename(1:end-4),'_sleep_bout_lengths.xls']),sle
 disp('Activities')
 activity_mat'
 xlswrite(fullfile(export_path,[filename(1:end-4),'_activity.xls']),activity_mat');
+
+% Output the workspace (comment out if necessary)
+%
+save(fullfile(export_path,[filename(1:end-4),'_workspace.mat']))
+%}
