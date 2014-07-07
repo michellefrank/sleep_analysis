@@ -2,11 +2,6 @@
 % Written by Stephen Zhang 2014-5-14
 % Will [probably] *definitely* be made better by Michelle Frank
 
-% Problems to be solved
-%
-% 1. Aspect ratio of the final file (looks hideous now)
-%
-% 2. Way of choosing location to export pdfs
 
 %% Import initial data
 % Get the file and start the drama
@@ -128,17 +123,18 @@ time_bounds(end,2)=5/60+8+(mat_bounds(n_days,2)-mat_bounds(n_days,1))*5/60;
 %% Plotting data
 % The plot will be in 2 x 4 format
 subplot_plan=[2,4];
+panels_per_page=subplot_plan(1)*subplot_plan(2);
 % A placeholder variable for how many panels have been plotted
 panels_done=0;
 
 % k is the index number for pages
-for k=1:4
+for k=1:ceil((32/panels_per_page))
     % Set figure size
     figure(101)
     set(gcf,'Position',[0 0 1000 691])
     
     % j is the index number for panels
-    for j=1:8
+    for j=1:min(panels_per_page,32-panels_done)
         subplot(subplot_plan(1),subplot_plan(2),j);
         hold on
         
@@ -174,10 +170,11 @@ for k=1:4
     % Resize the figures to fit on a piece of paper better (could be improved)
     set(gcf,'Position',[0 0 1400 1000],'Color',[1 1 1])
     
-    % Export and append the pdf files (Does not work on mac. Sorry)
+    % Export and append the pdf files
     export_fig(fullfile(export_path,[filename(1:end-4),'_actogram_', num2str(k), '.pdf']));
+    % export_fig(fullfile(export_path,[filename(1:end-4),'_actogram.pdf']),'-append');
     close 101
-    panels_done=panels_done+8;
+    panels_done=panels_done+panels_per_page;
 end
 
 %% Sleep data
@@ -236,8 +233,11 @@ else
 end
 
 % Comment something here so it looks green
-sleep_results'
-xlswrite(fullfile(export_path,[filename(1:end-4),'_sleep_results.xls']),sleep_results');
+sleep_results=sleep_results';
+avg_sleep_results=zeros(32,2);
+avg_sleep_results(:,1)=mean(sleep_results(:,1:2:n_sleep_bounds),2);
+avg_sleep_results(:,2)=mean(sleep_results(:,2:2:n_sleep_bounds),2);
+xlswrite(fullfile(export_path,[filename(1:end-4),'_sleep_results.xls']),avg_sleep_results);
 
 %% Sleep bout and activity calculations
 % Initiate the matrices to store sleep bout numbers, lengths and activities
@@ -276,17 +276,26 @@ for i=1:32
 end
 
 % Output the sleep bout numbers, lengths and activities to xls (the function csvwrite does not work very well for S. M shoud try it.)
-disp('Sleep bout numbers:')
-sleep_bout_num'
-xlswrite(fullfile(export_path,[filename(1:end-4),'_sleep_bout_num.xls']),sleep_bout_num');
+% disp('Sleep bout numbers:')
+sleep_bout_num=sleep_bout_num';
+avg_sleep_bout_num=zeros(32,2);
+avg_sleep_bout_num(:,1)=mean(sleep_bout_num(:,1:2:n_sleep_bounds),2);
+avg_sleep_bout_num(:,2)=mean(sleep_bout_num(:,2:2:n_sleep_bounds),2);
+xlswrite(fullfile(export_path,[filename(1:end-4),'_sleep_bout_numbers.xls']),avg_sleep_bout_num);
 
-disp('Sleep bout lengths:')
-sleep_bout_length'
-xlswrite(fullfile(export_path,[filename(1:end-4),'_sleep_bout_lengths.xls']),sleep_bout_length');
+% disp('Sleep bout lengths:')
+sleep_bout_length=sleep_bout_length';
+avg_sleep_bout_length=zeros(32,2);
+avg_sleep_bout_length(:,1)=mean(sleep_bout_length(:,1:2:n_sleep_bounds),2);
+avg_sleep_bout_length(:,2)=mean(sleep_bout_length(:,2:2:n_sleep_bounds),2);
+xlswrite(fullfile(export_path,[filename(1:end-4),'_sleep_bout_lengths.xls']),avg_sleep_bout_length);
 
-disp('Activities')
-activity_mat'
-xlswrite(fullfile(export_path,[filename(1:end-4),'_activity.xls']),activity_mat');
+% disp('Activities')
+activity_mat=activity_mat'/5;
+avg_activity_mat=zeros(32,2);
+avg_activity_mat(:,1)=mean(activity_mat(:,1:2:n_sleep_bounds),2);
+avg_activity_mat(:,2)=mean(activity_mat(:,2:2:n_sleep_bounds),2);
+xlswrite(fullfile(export_path,[filename(1:end-4),'_activities.xls']),avg_activity_mat);
 
 % Output the workspace (comment out if necessary)
 %
