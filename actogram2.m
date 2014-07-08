@@ -28,29 +28,10 @@ if master_mode==0
     end_date = input('Enter final date (e.g. 10 Apr 14): ', 's');
 end
 
-% Pare down monitor data to just those dates
-start = str2double(start_date(1:2));
-finish = str2double(end_date(1:2));
-days = start:finish;
-month_info = start_date(end-5:end);
+start_idx = find(strcmp(monitor_data.textdata(:,2), start_date));
+end_idx = find(strcmp(monitor_data.textdata(:,2), end_date));
 
-% Create new cell containing the days of interest
-date_strings = {};
-
-for i = 1:length(days)
-    
-    date_strings{i} = [num2str(days(i)), ' ', month_info];
-    
-end
-
-% Find those days in the monitor file
-date_indices = [];
-
-for i = 1:length(date_strings)
-    
-    date_indices = [date_indices; find(strcmp(monitor_data.textdata(:,2), date_strings{i}))];
-    
-end
+date_indices = start_idx(1):end_idx(end);
 
 % Delete the unwanted days
 monitor_data.data = monitor_data.data(date_indices,:);
@@ -62,12 +43,14 @@ end_time = '07:59:00';
 
 % Edit file to start at that point
 start_index = find(strcmp(monitor_data.textdata(:,3),start_time)...
-    & strcmp(monitor_data.textdata(:,2),date_strings{1}));
+    & strcmp(monitor_data.textdata(:,2),start_date));
 end_index = find(strcmp(monitor_data.textdata(:,3),end_time)...
-    & strcmp(monitor_data.textdata(:,2),date_strings{end}));
+    & strcmp(monitor_data.textdata(:,2),end_date));
 
 monitor_data.data = monitor_data.data(start_index:end_index,:);
 monitor_data.textdata = monitor_data.textdata(start_index:end_index,:);
+
+
 
 %%
 % Use two time points to determine whether the inter-recording inverval is 0.5 or 1 min
