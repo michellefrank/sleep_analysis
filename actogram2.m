@@ -2,11 +2,19 @@
 % Written by Stephen Zhang 2014-5-14
 % Will [probably] *definitely* be made better by Michelle Frank
 
+% This version is now compatible with batch processing 
+
+%% Batch processing initiation
+if exist('master_mode','var')==0
+    master_mode=0;
+end
 
 %% Import initial data
 % Get the file and start the drama
-[filename, pathname] = uigetfile('/Users/michelle/Documents/flies/light/Monitors/*.txt');
-
+if master_mode==0
+    [filename, pathname] = uigetfile('/Users/michelle/Documents/flies/light/Monitors/*.txt');
+end
+    
 export_path = '/Users/michelle/Documents/flies/light/AnalyzedData';
 
 % Master data structure file, separated into textdata and data
@@ -15,8 +23,10 @@ monitor_data=importdata(fullfile(pathname,filename));
 %% Separate data into desired days/times
 
 % Select dates to include
-start_date = input('Enter start date (e.g. 7 Apr 14): ', 's');
-end_date = input('Enter final date (e.g. 10 Apr 14): ', 's');
+if master_mode==0
+    start_date = input('Enter start date (e.g. 7 Apr 14): ', 's');
+    end_date = input('Enter final date (e.g. 10 Apr 14): ', 's');
+end
 
 % Pare down monitor data to just those dates
 start = str2double(start_date(1:2));
@@ -121,62 +131,63 @@ time_bounds(2:end-1,2)=32;
 time_bounds(end,2)=5/60+8+(mat_bounds(n_days,2)-mat_bounds(n_days,1))*5/60;
 
 %% Plotting data
-% The plot will be in 2 x 4 format
-subplot_plan=[2,4];
-panels_per_page=subplot_plan(1)*subplot_plan(2);
-% A placeholder variable for how many panels have been plotted
-panels_done=0;
+if master_mode==0
+    % The plot will be in 2 x 4 format
+    subplot_plan=[2,4];
+    panels_per_page=subplot_plan(1)*subplot_plan(2);
+    % A placeholder variable for how many panels have been plotted
+    panels_done=0;
 
-% k is the index number for pages
-for k=1:ceil((32/panels_per_page))
-    % Set figure size
-    figure(101)
-    set(gcf,'Position',[0 0 1000 691])
-    
-    % j is the index number for panels
-    for j=1:min(panels_per_page,32-panels_done)
-        subplot(subplot_plan(1),subplot_plan(2),j);
-        hold on
-        
-        % i is the index number for days
-        for i=1:n_days
-            bbar=bar(time_bounds(i,1):5/60:time_bounds(i,1)+(mat_bounds(i,2)-mat_bounds(i,1))*5/60,... % A weird way to determine what the actual x-values are for each point
-                oblonsky_binned_data(mat_bounds(i,1):mat_bounds(i,2),j+panels_done)... % The actual y-values for each point
-                /100/n_days+(n_days-i)/n_days); % Normalize against 100 and divide each panel into days
-            line([8,32],[(n_days-i)/n_days,(n_days-i)/n_days],'Color',[0 0 0]); % This is a line per request of Michelle
-            set(bbar,'EdgeColor',[0 128/255 128/255]) % Set the bar edge color to black. One vote for purple [153/255 102/255 204/255] from Stephen
-            set(bbar,'FaceColor',[0 128/255 128/255]) % Set the bar face color to black. One vote for purple from Stephen 
-            set(bbar,'BaseValue',(n_days-i)/n_days); % Elevate the bars to restrict them to their own little sub-panels
+    % k is the index number for pages
+    for k=1:ceil((32/panels_per_page))
+        % Set figure size
+        figure(101)
+        set(gcf,'Position',[0 0 1000 691])
+
+        % j is the index number for panels
+        for j=1:min(panels_per_page,32-panels_done)
+            subplot(subplot_plan(1),subplot_plan(2),j);
+            hold on
+
+            % i is the index number for days
+            for i=1:n_days
+                bbar=bar(time_bounds(i,1):5/60:time_bounds(i,1)+(mat_bounds(i,2)-mat_bounds(i,1))*5/60,... % A weird way to determine what the actual x-values are for each point
+                    oblonsky_binned_data(mat_bounds(i,1):mat_bounds(i,2),j+panels_done)... % The actual y-values for each point
+                    /100/n_days+(n_days-i)/n_days); % Normalize against 100 and divide each panel into days
+                line([8,32],[(n_days-i)/n_days,(n_days-i)/n_days],'Color',[0 0 0]); % This is a line per request of Michelle
+                set(bbar,'EdgeColor',[0 128/255 128/255]) % Set the bar edge color to black. One vote for purple [153/255 102/255 204/255] from Stephen
+                set(bbar,'FaceColor',[0 128/255 128/255]) % Set the bar face color to black. One vote for purple from Stephen 
+                set(bbar,'BaseValue',(n_days-i)/n_days); % Elevate the bars to restrict them to their own little sub-panels
+            end
+
+            % Make the figure readable
+            xlim([8,32]);
+            ylim([0,1]);
+
+            % Set X labels
+            set(gca,'XTick',[8 12 16 20 24 28 32]);
+            set(gca,'xticklabel',[8 12 16 20 24 4 8]);
+            set(gca,'yticklabel',[]);
+
+            % Draw a box and put on the titles
+            box on
+            title([monitor_data.textdata{1,2},' ',filename(1:end-4) ,' Channel ',num2str(j+panels_done)])
+            hold off
         end
-        
-        % Make the figure readable
-        xlim([8,32]);
-        ylim([0,1]);
-        
-        % Set X labels
-        set(gca,'XTick',[8 12 16 20 24 28 32]);
-        set(gca,'xticklabel',[8 12 16 20 24 4 8]);
-        set(gca,'yticklabel',[]);
-        
-        % Draw a box and put on the titles
-        box on
-        title([monitor_data.textdata{1,2},' ',filename(1:end-4) ,' Channel ',num2str(j+panels_done)])
-        hold off
-    end
-    
-    % Make figures look tighter
-    tightfig;
-    
-    % Resize the figures to fit on a piece of paper better (could be improved)
-    set(gcf,'Position',[0 0 1400 1000],'Color',[1 1 1])
-    
-    % Export and append the pdf files
-    export_fig(fullfile(export_path,[filename(1:end-4),'_actogram_', num2str(k), '.pdf']));
-    % export_fig(fullfile(export_path,[filename(1:end-4),'_actogram.pdf']),'-append');
-    close 101
-    panels_done=panels_done+panels_per_page;
-end
 
+        % Make figures look tighter
+        tightfig;
+
+        % Resize the figures to fit on a piece of paper better (could be improved)
+        set(gcf,'Position',[0 0 1400 1000],'Color',[1 1 1])
+
+        % Export and append the pdf files
+        export_fig(fullfile(export_path,[filename(1:end-4),'_actogram_', num2str(k), '.pdf']));
+        % export_fig(fullfile(export_path,[filename(1:end-4),'_actogram.pdf']),'-append');
+        close 101
+        panels_done=panels_done+panels_per_page;
+    end
+end
 %% Sleep data
 
 % Binarize binned data so that one bin of no movement counts as 5 min of
@@ -207,13 +218,17 @@ sleep_bounds(n_sleep_bounds,2)=n_bins;
 
 % Determine whether Day 1 is a full day or not
 if mat_bounds(1,2)-mat_bounds(1,1)==287
-    % If full day, tell us and add day 1 to the sleep bounds
-    disp('Keeping day 1 sleep data')
+    if master_mode==0
+        % If full day, tell us and add day 1 to the sleep bounds
+        disp('Keeping day 1 sleep data')
+    end
     sleep_bounds=[1,144;145,288;sleep_bounds];
     n_sleep_bounds=n_sleep_bounds+2;
 else
-    % If not full day, tell us and keep the sleep bounds as they are
-    disp('Discarding day 1 sleep data')
+    if master_mode==0
+        % If not full day, tell us and keep the sleep bounds as they are
+        disp('Discarding day 1 sleep data')
+    end
 end
 
 % Calculate the sleep results accordingly
@@ -224,12 +239,16 @@ end
 
 % If the last day/night sleep data are incomplete, they are discarded.
 if mat_bounds(end,2)-mat_bounds(end,1)~=143 && mat_bounds(end,2)-mat_bounds(end,1)~=287
-    disp('Last day/night sleep data are not complete, thus discarded')
+    if master_mode==0
+        disp('Last day/night sleep data are not complete, thus discarded')
+    end
     sleep_results(n_sleep_bounds,:)=[];
     n_sleep_bounds=n_sleep_bounds-1;
     sleep_bounds(n_sleep_bounds,:)=[];
 else
-    disp('Keeping the last day/night sleep data')
+    if master_mode==0
+        disp('Keeping the last day/night sleep data')
+    end
 end
 
 % Comment something here so it looks green
@@ -299,5 +318,27 @@ xlswrite(fullfile(export_path,[filename(1:end-4),'_activities.xls']),avg_activit
 
 % Output the workspace (comment out if necessary)
 %
-save(fullfile(export_path,[filename(1:end-4),'_workspace.mat']))
+if master_mode==0
+    save(fullfile(export_path,[filename(1:end-4),'_workspace.mat']));
+end
 %}
+
+%% Consolidating data to the master data file
+if master_mode==1
+    current_channel=1;
+    for jj=1:n_genos_of_current_monitor
+        current_geno=master_direction.textdata{ii+jj-1,2};
+        current_geno_index=find(strcmp(genos,current_geno));
+        n_channels_of_current_geno=master_direction.data(ii+jj-3);
+        
+        master_data_struct(current_geno_index).data=[master_data_struct(current_geno_index).data,oblonsky_binned_data(:,current_channel:current_channel+n_channels_of_current_geno-1)];
+        master_data_struct(current_geno_index).sleep=[master_data_struct(current_geno_index).sleep;avg_sleep_results(current_channel:current_channel+n_channels_of_current_geno-1,:)];
+        master_data_struct(current_geno_index).sleep_bout_lengths=[master_data_struct(current_geno_index).sleep_bout_lengths;avg_sleep_bout_length(current_channel:current_channel+n_channels_of_current_geno-1,:)];
+        master_data_struct(current_geno_index).sleep_bout_numbers=[master_data_struct(current_geno_index).sleep_bout_numbers;avg_sleep_bout_num(current_channel:current_channel+n_channels_of_current_geno-1,:)];
+        master_data_struct(current_geno_index).activities=[master_data_struct(current_geno_index).activities;avg_activity_mat(current_channel:current_channel+n_channels_of_current_geno-1,:)];
+        
+        current_channel=current_channel+n_channels_of_current_geno;
+    end
+
+    
+end
