@@ -35,15 +35,21 @@ while ii<master_lines_to_read
 end
 close(h)
 
-master_output_mat=zeros(n_genos,8);
+master_output_cell=cell(n_genos,10);
 for ii=1:n_genos
-    master_output_mat(ii,1:2)=mean(master_data_struct(ii).sleep);
-    master_output_mat(ii,3:4)=mean(master_data_struct(ii).sleep_bout_lengths);
-    master_output_mat(ii,5:6)=mean(master_data_struct(ii).sleep_bout_numbers);
-    master_output_mat(ii,7:8)=mean(master_data_struct(ii).activities);
+    master_output_cell{ii,1}=genos{ii};
+    master_output_cell{ii,2}=master_direction.data(ii);
+    master_output_cell{ii,3}=mean(master_data_struct(ii).sleep(:,1));
+    master_output_cell{ii,4}=mean(master_data_struct(ii).sleep(:,2));
+    master_output_cell{ii,5}=mean(master_data_struct(ii).sleep_bout_lengths(:,1));
+    master_output_cell{ii,6}=mean(master_data_struct(ii).sleep_bout_lengths(:,2));
+    master_output_cell{ii,7}=mean(master_data_struct(ii).sleep_bout_numbers(:,1));
+    master_output_cell{ii,8}=mean(master_data_struct(ii).sleep_bout_numbers(:,2));
+    master_output_cell{ii,9}=mean(master_data_struct(ii).activities(:,1));
+    master_output_cell{ii,10}=mean(master_data_struct(ii).activities(:,2));
 end
 
-xlswrite(fullfile(export_path,[filename_master(1:end-5),'_output.xls']),master_output_mat);
+cell2csv(fullfile(export_path,[filename_master(1:end-5),'_output.csv']),master_output_cell);
 
 save(fullfile(export_path,[filename_master(1:end-5),'_workspace.mat']));
 %%
