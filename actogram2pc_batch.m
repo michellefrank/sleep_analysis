@@ -2,8 +2,6 @@
 % Written by Stephen Zhang 2014-5-14
 % Will [probably] *definitely* be made better by Michelle Frank
 
-% This version is for PC with ghostscript
-
 %% Batch processing initiation
 if exist('master_mode','var')==0
     master_mode=0;
@@ -138,8 +136,8 @@ if master_mode==0
                     oblonsky_binned_data(mat_bounds(i,1):mat_bounds(i,2),j+panels_done)... % The actual y-values for each point
                     /100/n_days+(n_days-i)/n_days); % Normalize against 100 and divide each panel into days
                 line([8,32],[(n_days-i)/n_days,(n_days-i)/n_days],'Color',[0 0 0]); % This is a line per request of Michelle
-                set(bbar,'EdgeColor',[0 128/255 128/255]) % Set the bar edge color to black. One vote for purple [153/255 102/255 204/255] from Stephen
-                set(bbar,'FaceColor',[0 128/255 128/255]) % Set the bar face color to black. One vote for purple from Stephen 
+                set(bbar,'EdgeColor',[0 0 0]) % Set the bar edge color to black. One vote for purple [153/255 102/255 204/255] from Stephen. RIP teal (2014-2014): [0 128/255 128/255].
+                set(bbar,'FaceColor',[0 0 0]) % Set the bar face color to black. One vote for purple from Stephen. RIP teal (2014-2014): [0 128/255 128/255].
                 set(bbar,'BaseValue',(n_days-i)/n_days); % Elevate the bars to restrict them to their own little sub-panels
             end
 
@@ -234,12 +232,18 @@ else
     end
 end
 
+% Calculate the dead flies
+dead_fly_vector=(sleep_results(end-1,:)+sleep_results(end,:))==1440;
+dead_fly_vector=dead_fly_vector';
+
 % Comment something here so it looks green
 sleep_results=sleep_results';
-avg_sleep_results=zeros(32,2);
-avg_sleep_results(:,1)=mean(sleep_results(:,1:2:n_sleep_bounds),2);
-avg_sleep_results(:,2)=mean(sleep_results(:,2:2:n_sleep_bounds),2);
-xlswrite(fullfile(export_path,[filename(1:end-4),'_sleep_results.xls']),avg_sleep_results);
+avg_sleep_results=zeros(32,3);
+avg_sleep_results(:,2)=mean(sleep_results(:,1:2:n_sleep_bounds),2);
+avg_sleep_results(:,3)=mean(sleep_results(:,2:2:n_sleep_bounds),2);
+avg_sleep_results(:,1)=avg_sleep_results(:,2)+avg_sleep_results(:,3);
+avg_sleep_results(dead_fly_vector,:)=NaN;
+%xlswrite(fullfile(export_path,[filename(1:end-4),'_sleep_results.xls']),avg_sleep_results);
 
 %% Sleep bout and activity calculations
 % Initiate the matrices to store sleep bout numbers, lengths and activities
@@ -283,21 +287,34 @@ sleep_bout_num=sleep_bout_num';
 avg_sleep_bout_num=zeros(32,2);
 avg_sleep_bout_num(:,1)=mean(sleep_bout_num(:,1:2:n_sleep_bounds),2);
 avg_sleep_bout_num(:,2)=mean(sleep_bout_num(:,2:2:n_sleep_bounds),2);
-xlswrite(fullfile(export_path,[filename(1:end-4),'_sleep_bout_numbers.xls']),avg_sleep_bout_num);
+avg_sleep_bout_num(dead_fly_vector,:)=NaN;
+%xlswrite(fullfile(export_path,[filename(1:end-4),'_sleep_bout_numbers.xls']),avg_sleep_bout_num);
 
 % disp('Sleep bout lengths:')
 sleep_bout_length=sleep_bout_length';
 avg_sleep_bout_length=zeros(32,2);
 avg_sleep_bout_length(:,1)=mean(sleep_bout_length(:,1:2:n_sleep_bounds),2);
 avg_sleep_bout_length(:,2)=mean(sleep_bout_length(:,2:2:n_sleep_bounds),2);
-xlswrite(fullfile(export_path,[filename(1:end-4),'_sleep_bout_lengths.xls']),avg_sleep_bout_length);
+avg_sleep_bout_length(dead_fly_vector,:)=NaN;
+%xlswrite(fullfile(export_path,[filename(1:end-4),'_sleep_bout_lengths.xls']),avg_sleep_bout_length);
 
 % disp('Activities')
 activity_mat=activity_mat'/5;
 avg_activity_mat=zeros(32,2);
 avg_activity_mat(:,1)=mean(activity_mat(:,1:2:n_sleep_bounds),2);
 avg_activity_mat(:,2)=mean(activity_mat(:,2:2:n_sleep_bounds),2);
-xlswrite(fullfile(export_path,[filename(1:end-4),'_activities.xls']),avg_activity_mat);
+avg_activity_mat(dead_fly_vector,:)=NaN;
+%xlswrite(fullfile(export_path,[filename(1:end-4),'_activities.xls']),avg_activity_mat);
+
+% Construct a single output cell for the current monitor
+monitor_output_cell=cell(33,9);
+monitor_output_cell(1,:)={'total sleep','day sleep','night sleep','day bout length','night bout length',...
+    'day bout number','night bout number','day activity','night activity'};
+monitor_output_cell(2:33,:)=num2cell([avg_sleep_results,avg_sleep_bout_length,avg_sleep_bout_num,avg_activity_mat]);
+
+% Output the cell to a csv file
+cell2csv(fullfile(export_path,[filename(1:end-4),'_monitor_data.csv']),monitor_output_cell);
+
 
 % Output the workspace (comment out if necessary)
 %
@@ -308,18 +325,40 @@ end
 
 %% Consolidating data to the master data file
 if master_mode==1
+    % Start from the first channel (i.e. first fly tube)
     current_channel=1;
     for jj=1:n_genos_of_current_monitor
+        % Read the current genotype
         current_geno=master_direction.textdata{ii+jj-1,2};
+        
+        % Obtain the index in the genotype list
         current_geno_index=find(strcmp(genos,current_geno));
+        
+        % Find the number of flies with the current genotype
         n_channels_of_current_geno=master_direction.data(ii+jj-3);
         
+        % Calculate the number of dead flies
+        n_dead_flies=sum(dead_fly_vector(current_channel:current_channel+n_channels_of_current_geno-1));
+        
+        % Write the actogram data to the master structure
         master_data_struct(current_geno_index).data=[master_data_struct(current_geno_index).data,oblonsky_binned_data(:,current_channel:current_channel+n_channels_of_current_geno-1)];
+        
+        % Write the sleep lengths to the mastere structure
         master_data_struct(current_geno_index).sleep=[master_data_struct(current_geno_index).sleep;avg_sleep_results(current_channel:current_channel+n_channels_of_current_geno-1,:)];
+        
+        % Write the sleep bout lengths to te master structure
         master_data_struct(current_geno_index).sleep_bout_lengths=[master_data_struct(current_geno_index).sleep_bout_lengths;avg_sleep_bout_length(current_channel:current_channel+n_channels_of_current_geno-1,:)];
+        
+        % Write the sleep bout numbers to the master structure
         master_data_struct(current_geno_index).sleep_bout_numbers=[master_data_struct(current_geno_index).sleep_bout_numbers;avg_sleep_bout_num(current_channel:current_channel+n_channels_of_current_geno-1,:)];
+        
+        % Write the activities to the master structure
         master_data_struct(current_geno_index).activities=[master_data_struct(current_geno_index).activities;avg_activity_mat(current_channel:current_channel+n_channels_of_current_geno-1,:)];
         
+        % Add the number of alive flies in the master structure
+        master_data_struct(current_geno_index).num_alive_flies=master_data_struct(current_geno_index).num_alive_flies+n_channels_of_current_geno-n_dead_flies;
+        
+        % Determine the next channel
         current_channel=current_channel+n_channels_of_current_geno;
     end
 
