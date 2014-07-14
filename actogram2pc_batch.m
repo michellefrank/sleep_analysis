@@ -243,7 +243,7 @@ avg_sleep_results(:,2)=mean(sleep_results(:,1:2:n_sleep_bounds),2);
 avg_sleep_results(:,3)=mean(sleep_results(:,2:2:n_sleep_bounds),2);
 avg_sleep_results(:,1)=avg_sleep_results(:,2)+avg_sleep_results(:,3);
 avg_sleep_results(dead_fly_vector,:)=NaN;
-%xlswrite(fullfile(export_path,[filename(1:end-4),'_sleep_results.xls']),avg_sleep_results);
+% xlswrite(fullfile(export_path,[filename(1:end-4),'_sleep_results.xls']),avg_sleep_results);
 
 %% Sleep bout and activity calculations
 % Initiate the matrices to store sleep bout numbers, lengths and activities
@@ -288,7 +288,7 @@ avg_sleep_bout_num=zeros(32,2);
 avg_sleep_bout_num(:,1)=mean(sleep_bout_num(:,1:2:n_sleep_bounds),2);
 avg_sleep_bout_num(:,2)=mean(sleep_bout_num(:,2:2:n_sleep_bounds),2);
 avg_sleep_bout_num(dead_fly_vector,:)=NaN;
-%xlswrite(fullfile(export_path,[filename(1:end-4),'_sleep_bout_numbers.xls']),avg_sleep_bout_num);
+% xlswrite(fullfile(export_path,[filename(1:end-4),'_sleep_bout_numbers.xls']),avg_sleep_bout_num);
 
 % disp('Sleep bout lengths:')
 sleep_bout_length=sleep_bout_length';
@@ -296,7 +296,7 @@ avg_sleep_bout_length=zeros(32,2);
 avg_sleep_bout_length(:,1)=mean(sleep_bout_length(:,1:2:n_sleep_bounds),2);
 avg_sleep_bout_length(:,2)=mean(sleep_bout_length(:,2:2:n_sleep_bounds),2);
 avg_sleep_bout_length(dead_fly_vector,:)=NaN;
-%xlswrite(fullfile(export_path,[filename(1:end-4),'_sleep_bout_lengths.xls']),avg_sleep_bout_length);
+% xlswrite(fullfile(export_path,[filename(1:end-4),'_sleep_bout_lengths.xls']),avg_sleep_bout_length);
 
 % disp('Activities')
 activity_mat=activity_mat'/5;
@@ -304,7 +304,7 @@ avg_activity_mat=zeros(32,2);
 avg_activity_mat(:,1)=mean(activity_mat(:,1:2:n_sleep_bounds),2);
 avg_activity_mat(:,2)=mean(activity_mat(:,2:2:n_sleep_bounds),2);
 avg_activity_mat(dead_fly_vector,:)=NaN;
-%xlswrite(fullfile(export_path,[filename(1:end-4),'_activities.xls']),avg_activity_mat);
+% xlswrite(fullfile(export_path,[filename(1:end-4),'_activities.xls']),avg_activity_mat);
 
 % Construct a single output cell for the current monitor
 monitor_output_cell=cell(33,9);
