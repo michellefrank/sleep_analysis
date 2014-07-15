@@ -24,7 +24,7 @@ genos=unique(genos,'stable');
 n_genos=size(genos,1);
 
 % Construct the master data file (in the structure form)
-master_data_struct=struct('genotype','','data',[],'sleep',[],'sleep_bout_lengths',[],'sleep_bout_numbers',[],'activities',[]);
+master_data_struct=struct('genotype','','num_alive_flies',0,'data',[],'sleep',[],'sleep_bout_lengths',[],'sleep_bout_numbers',[],'activities',[]);
 master_data_struct(1:n_genos,1)=master_data_struct;
 
 % Label the genotypes on the master data strcuture
@@ -47,13 +47,13 @@ while ii<master_lines_to_read
     % Determine which line of the parameter file to read
     current_line_to_read=ii-2;
     
-    % Adjust the waitbar progress
-    waitbar(ii/master_lines_to_read,h,['Processing: ', current_monitor_name]);
-    
     % Obtain the monitor name
     current_monitor_name=master_direction.textdata{ii,1};
     filename=[current_monitor_name,'.txt'];
-       
+    
+    % Adjust the waitbar progress
+    waitbar(ii/master_lines_to_read,h,['Processing: ', current_monitor_name]);
+        
     % Determine the number of genoypes to read from the current monitor
     % file
     n_genos_of_current_monitor=sum(strcmp(master_direction.textdata(:,1),current_monitor_name));
@@ -81,34 +81,34 @@ for ii=1:n_genos
     master_output_cell{ii+1,2}=master_direction.data(ii);
     
     % Third column shows how many flies remained alive at the end
-    master_output_cell{ii+1,3}=master_direction.data(ii);
+    master_output_cell{ii+1,3}=master_data_struct(ii).num_alive_flies;
     
     % Forth column shows average total sleep per genotype
-    master_output_cell{ii+1,4}=mean(master_data_struct(ii).sleep(:,1))+mean(master_data_struct(ii).sleep(:,2));
+    master_output_cell{ii+1,4}=nanmean(master_data_struct(ii).sleep(:,1));
     
     % Fifth column shows average day-time sleep per genotype
-    master_output_cell{ii+1,5}=mean(master_data_struct(ii).sleep(:,1));
+    master_output_cell{ii+1,5}=nanmean(master_data_struct(ii).sleep(:,2));
     
     % Sixth column shows average night-time sleep per genotype
-    master_output_cell{ii+1,6}=mean(master_data_struct(ii).sleep(:,2));
+    master_output_cell{ii+1,6}=nanmean(master_data_struct(ii).sleep(:,3));
     
     % Seventh column shows average day-time sleep bout length per genotype
-    master_output_cell{ii+1,7}=mean(master_data_struct(ii).sleep_bout_lengths(:,1));
+    master_output_cell{ii+1,7}=nanmean(master_data_struct(ii).sleep_bout_lengths(:,1));
     
     % Eighth column shows average night-time sleep bout length per genotype
-    master_output_cell{ii+1,8}=mean(master_data_struct(ii).sleep_bout_lengths(:,2));
+    master_output_cell{ii+1,8}=nanmean(master_data_struct(ii).sleep_bout_lengths(:,2));
     
     % Ninth column shows average day-time sleep bout number per genotype
-    master_output_cell{ii+1,9}=mean(master_data_struct(ii).sleep_bout_numbers(:,1));
+    master_output_cell{ii+1,9}=nanmean(master_data_struct(ii).sleep_bout_numbers(:,1));
     
     % Tenth column shows average night-time sleep bout number per genotype
-    master_output_cell{ii+1,10}=mean(master_data_struct(ii).sleep_bout_numbers(:,2));
+    master_output_cell{ii+1,10}=nanmean(master_data_struct(ii).sleep_bout_numbers(:,2));
     
     % Eleventh column shows average day-time activity per genotype
-    master_output_cell{ii+1,11}=mean(master_data_struct(ii).activities(:,1));
+    master_output_cell{ii+1,11}=nanmean(master_data_struct(ii).activities(:,1));
     
     % Twelfth column shows average night-time activity per genotype
-    master_output_cell{ii+1,12}=mean(master_data_struct(ii).activities(:,2));
+    master_output_cell{ii+1,12}=nanmean(master_data_struct(ii).activities(:,2));
 end
 
 

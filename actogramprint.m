@@ -45,7 +45,9 @@ for k=1:ceil((size(data2print,2)/panels_per_page))
     end
 
     % Make figures look tighter
-    tightfig;
+    if min(panels_per_page,size(data2print,2)-panels_done)>4
+        tightfig;
+    end
 
     % Resize the figures to fit on a piece of paper better (could be improved)
     set(gcf,'Position',[0 0 1400 1000],'Color',[1 1 1])
