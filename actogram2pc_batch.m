@@ -137,7 +137,7 @@ if master_mode==0
                     /100/n_days+(n_days-i)/n_days); % Normalize against 100 and divide each panel into days
                 line([8,32],[(n_days-i)/n_days,(n_days-i)/n_days],'Color',[0 0 0]); % This is a line per request of Michelle
                 set(bbar,'EdgeColor',[0 0 0]) % Set the bar edge color to black. One vote for purple [153/255 102/255 204/255] from Stephen. RIP teal (2014-2014): [0 128/255 128/255].
-                set(bbar,'FaceColor',[0 0 0]) % Set the bar face color to black. One vote for purple from Stephen. RIP teal (2014-2014): [0 128/255 128/255].
+                set(bbar,'FaceColor',[0 0 0]) % Set the bar face color to black. One vote for purple from Stephen. RIP teal (2014-2014).
                 set(bbar,'BaseValue',(n_days-i)/n_days); % Elevate the bars to restrict them to their own little sub-panels
             end
 
@@ -335,7 +335,7 @@ if master_mode==1
         current_geno_index=find(strcmp(genos,current_geno));
         
         % Find the number of flies with the current genotype
-        n_channels_of_current_geno=master_direction.data(ii+jj-3);
+        n_channels_of_current_geno=master_direction.data(ii+jj-3,1);
         
         % Calculate the number of dead flies
         n_dead_flies=sum(dead_fly_vector(current_channel:current_channel+n_channels_of_current_geno-1));
@@ -357,6 +357,12 @@ if master_mode==1
         
         % Add the number of alive flies in the master structure
         master_data_struct(current_geno_index).num_alive_flies=master_data_struct(current_geno_index).num_alive_flies+n_channels_of_current_geno-n_dead_flies;
+        
+        % Write the dead fly indicies to the master structure
+        master_data_struct(current_geno_index).alive_fly_indicies=[master_data_struct(current_geno_index).alive_fly_indicies;~dead_fly_vector(current_channel:current_channel+n_channels_of_current_geno-1)==1];
+        
+        % Write the number of processed flies to the master structure
+        master_data_struct(current_geno_index).num_processed_flies=master_data_struct(current_geno_index).num_processed_flies+n_channels_of_current_geno;
         
         % Determine the next channel
         current_channel=current_channel+n_channels_of_current_geno;

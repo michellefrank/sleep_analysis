@@ -24,12 +24,23 @@ genos=unique(genos,'stable');
 n_genos=size(genos,1);
 
 % Construct the master data file (in the structure form)
-master_data_struct=struct('genotype','','num_alive_flies',0,'data',[],'sleep',[],'sleep_bout_lengths',[],'sleep_bout_numbers',[],'activities',[]);
+master_data_struct=struct('genotype','','rainbowgroup',[],'num_alive_flies',0,'num_processed_flies',0,'alive_fly_indicies',[],'data',[],'sleep',[],'sleep_bout_lengths',[],'sleep_bout_numbers',[],'activities',[]);
 master_data_struct(1:n_genos,1)=master_data_struct;
 
-% Label the genotypes on the master data strcuture
+% Label the genotypes and rainbow indicies on the master data strcuture
 for i=1:n_genos
+    % Label genotypes
     master_data_struct(i).genotype=genos{i};
+    
+    % Find which rows in the parameter file contain the the genotype
+    temp_rows_of_geno=strcmp(master_direction.textdata(:,2),genos{i});
+    
+    % Eliminate the first two rows (the have no numbers)
+    temp_rows_of_geno(1:2)=[];
+    
+    % Determine which rainbow group the current genotype is in (ignore NaN and use the max group value
+    % if multiple group numbers were entered (don't do it!))
+    master_data_struct(i).rainbowgroup=nanmax(master_direction.data(temp_rows_of_geno,2));   
 end
 
 % Determine how many lines to read from the parameter file. Each genotype
@@ -78,7 +89,7 @@ for ii=1:n_genos
     master_output_cell{ii+1,1}=genos{ii};
     
     % Second column shows how many flies loaded
-    master_output_cell{ii+1,2}=master_direction.data(ii);
+    master_output_cell{ii+1,2}=master_direction.data(ii,1);
     
     % Third column shows how many flies remained alive at the end
     master_output_cell{ii+1,3}=master_data_struct(ii).num_alive_flies;
@@ -119,6 +130,48 @@ cell2csv(fullfile(export_path,[filename_master(1:end-5),'_output.csv']),master_o
 save(fullfile(export_path,[filename_master(1:end-5),'_workspace.mat']));
 
 % Save the actograms
-for ii=1:n_genos
-    actogramprint( master_data_struct(ii).data, time_bounds, mat_bounds , n_days, export_path, [filename_master(1:end-5),'_',genos{ii}], [monitor_data.textdata{1,2}, ' ',genos{ii}])
+for ii=1:1%n_genos
+    actogramprint(master_data_struct(ii).data, time_bounds, mat_bounds , n_days, export_path, [filename_master(1:end-5),'_',genos{ii}], [monitor_data.textdata{1,2}, ' ',genos{ii}])
+end
+
+%% Rainbow plots
+% Construct a vector of rainbow groups corresponding to the genotypes
+rainbowgroups_vector=cell2mat({master_data_struct.rainbowgroup})';
+
+% Determine the unique rainbow groups (ignoring the NaNs) and their count
+rainbowgroups_unique=unique(rainbowgroups_vector(rainbowgroups_vector>-99999),'stable');
+rainbowgroups_n=length(rainbowgroups_unique);
+
+for j=1:rainbowgroups_n
+    % Find how many and which genotypes are of the current rainbow group
+    geno_indicies_of_the_current_rainbowgroup=find(rainbowgroups_vector==rainbowgroups_unique(j));
+    n_geno_of_the_current_rainhowgroup=length(geno_indicies_of_the_current_rainbowgroup);
+    
+    % Prime the rainbow data matrix
+    rainbow_mat=zeros(48,n_geno_of_the_current_rainhowgroup);
+    rainbow_mat_sem=zeros(48,n_geno_of_the_current_rainhowgroup);
+    for i=1:n_geno_of_the_current_rainhowgroup
+        % Calculate the average and std/sem sleep per 5 min and 30 min of one genotype
+        % (Ignoring dead flies)
+        temp_average_sleep_per_5_min=mean(reshape(master_data_struct(geno_indicies_of_the_current_rainbowgroup(i)).data(:,master_data_struct(geno_indicies_of_the_current_rainbowgroup(i)).alive_fly_indicies>0)==0,288,[]),2)*5;
+        temp_std_sleep_per_5_min=std(reshape(master_data_struct(geno_indicies_of_the_current_rainbowgroup(i)).data(:,master_data_struct(geno_indicies_of_the_current_rainbowgroup(i)).alive_fly_indicies>0)==0,288,[])*5,1,2);
+        temp_average_sleep_per_30_min=sum(reshape(temp_average_sleep_per_5_min,6,[]))';
+        temp_sem_sleep_per_30_min=sqrt(sum(reshape(temp_std_sleep_per_5_min,6,[]).^2)')/sqrt(master_data_struct(geno_indicies_of_the_current_rainbowgroup(i)).num_alive_flies);
+        
+        % Put the data in the rainbow matrices
+        rainbow_mat(:,i)=temp_average_sleep_per_30_min;
+        rainbow_mat_sem(:,i)=temp_sem_sleep_per_30_min;
+    end
+    
+    % Create the rainbox plots
+    errorbar(rainbow_mat,rainbow_mat_sem,'-o','LineWidth',1.5)
+    axis([0,48,0,30])
+    set(gca,'XTick',0:8:48)
+    set(gca,'XTickLabel',{'8','12','16','20','24','4','8'})
+    legend({master_data_struct(geno_indicies_of_the_current_rainbowgroup).genotype},'Location', 'SouthEast')
+    xlabel('Time')
+    ylabel('sleep per 30 min (min)')
+    set(gcf,'Color',[1,1,1])
+    
+    export_fig(fullfile(export_path,[filename_master(1:end-5),'_',num2str(rainbowgroups_unique(j)),'_rainbow.pdf']));
 end

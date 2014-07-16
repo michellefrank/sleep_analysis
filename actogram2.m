@@ -337,7 +337,7 @@ if master_mode==1
         current_geno_index=find(strcmp(genos,current_geno));
         
         % Find the number of flies with the current genotype
-        n_channels_of_current_geno=master_direction.data(ii+jj-3);
+        n_channels_of_current_geno=master_direction.data(ii+jj-3,1);
         
         % Calculate the number of dead flies
         n_dead_flies=sum(dead_fly_vector(current_channel:current_channel+n_channels_of_current_geno-1));
@@ -359,6 +359,12 @@ if master_mode==1
         
         % Add the number of alive flies in the master structure
         master_data_struct(current_geno_index).num_alive_flies=master_data_struct(current_geno_index).num_alive_flies+n_channels_of_current_geno-n_dead_flies;
+        
+        % Write the dead fly indicies to the master structure
+        master_data_struct(current_geno_index).dead_fly_indicies=[master_data_struct(current_geno_index).dead_fly_indicies;find(dead_fly_vector(current_channel:current_channel+n_channels_of_current_geno-1)==1)+master_data_struct(current_geno_index).num_processed_flies];
+        
+        % Write the number of processed flies to the master structure
+        master_data_struct(current_geno_index).num_processed_flies=master_data_struct(current_geno_index).num_processed_flies+n_channels_of_current_geno;
         
         % Determine the next channel
         current_channel=current_channel+n_channels_of_current_geno;
