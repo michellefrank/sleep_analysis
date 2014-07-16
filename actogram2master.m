@@ -130,7 +130,7 @@ cell2csv(fullfile(export_path,[filename_master(1:end-5),'_output.csv']),master_o
 save(fullfile(export_path,[filename_master(1:end-5),'_workspace.mat']));
 
 % Save the actograms
-for ii=1:1%n_genos
+for ii=1:n_genos
     actogramprint(master_data_struct(ii).data, time_bounds, mat_bounds , n_days, export_path, [filename_master(1:end-5),'_',genos{ii}], [monitor_data.textdata{1,2}, ' ',genos{ii}])
 end
 
