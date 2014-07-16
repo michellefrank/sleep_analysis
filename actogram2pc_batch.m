@@ -163,7 +163,7 @@ if master_mode==0
         set(gcf,'Position',[0 0 1400 1000],'Color',[1 1 1])
 
         % Export and append the pdf files
-        % export_fig(fullfile(export_path,[filename(1:end-4),'_actogram_', num2str(k), '.pdf']));
+        % saveas(gcf,fullfile(export_path,[filename(1:end-4),'_actogram_', num2str(k), '.pdf']));
         export_fig(fullfile(export_path,[filename(1:end-4),'_actogram.pdf']),'-append');
         close 101
         panels_done=panels_done+panels_per_page;

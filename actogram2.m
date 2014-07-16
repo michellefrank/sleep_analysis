@@ -159,7 +159,9 @@ if master_mode==0
         end
 
         % Make figures look tighter
-        tightfig;
+        if min(panels_per_page,32-panels_done)>4
+            tightfig;
+        end
 
         % Resize the figures to fit on a piece of paper better (could be improved)
         set(gcf,'Position',[0 0 1400 1000],'Color',[1 1 1])

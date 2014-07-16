@@ -150,6 +150,10 @@ for j=1:rainbowgroups_n
     % Prime the rainbow data matrix
     rainbow_mat=zeros(48,n_geno_of_the_current_rainhowgroup);
     rainbow_mat_sem=zeros(48,n_geno_of_the_current_rainhowgroup);
+    
+    % Prime the output rainbow cell
+    rainbow_cell=cell(98,n_geno_of_the_current_rainhowgroup);
+        
     for i=1:n_geno_of_the_current_rainhowgroup
         % Calculate the average and std/sem sleep per 5 min and 30 min of one genotype
         % (Ignoring dead flies)
@@ -158,21 +162,29 @@ for j=1:rainbowgroups_n
         temp_average_sleep_per_30_min=sum(reshape(temp_average_sleep_per_5_min,6,[]))';
         temp_sem_sleep_per_30_min=sqrt(sum(reshape(temp_std_sleep_per_5_min,6,[]).^2)')/sqrt(master_data_struct(geno_indicies_of_the_current_rainbowgroup(i)).num_alive_flies);
         
+        rainbow_cell{1,i}=genos{geno_indicies_of_the_current_rainbowgroup(i)};
+        rainbow_cell{2,i}=master_data_struct(geno_indicies_of_the_current_rainbowgroup(i)).num_alive_flies;
+        rainbow_cell(3:50,i)=num2cell(temp_average_sleep_per_30_min);
+        rainbow_cell(51:98,i)=num2cell(temp_sem_sleep_per_30_min);
         % Put the data in the rainbow matrices
         rainbow_mat(:,i)=temp_average_sleep_per_30_min;
         rainbow_mat_sem(:,i)=temp_sem_sleep_per_30_min;
     end
     
     % Create the rainbox plots
-    errorbar(rainbow_mat,rainbow_mat_sem,'-o','LineWidth',1.5)
-    axis([0,48,0,30])
-    set(gca,'XTick',0:8:48)
+    errorbar(rainbow_mat,rainbow_mat_sem,'-o','LineWidth',1.5);
+    axis([1,49,0,30])
+    set(gca,'XTick',1:8:49)
     set(gca,'XTickLabel',{'8','12','16','20','24','4','8'})
     legend({master_data_struct(geno_indicies_of_the_current_rainbowgroup).genotype},'Location', 'SouthEast')
     xlabel('Time')
     ylabel('sleep per 30 min (min)')
     set(gcf,'Color',[1,1,1])
     
-    export_fig(fullfile(export_path,[filename_master(1:end-5),'_',num2str(rainbowgroups_unique(j)),'_rainbow.pdf']));
+    % Save the fig and the data
+    saveas(fullfile(export_path,[filename_master(1:end-5),'_',num2str(rainbowgroups_unique(j)),'_rainbow.pdf']));
+    % savefig(fullfile(export_path,[filename_master(1:end-5),'_',num2str(rainbowgroups_unique(j)),'_rainbow.fig']));
+    cell2csv(fullfile(export_path,[filename_master(1:end-5),'_',num2str(rainbowgroups_unique(j)),'_rainbowdata.csv']),rainbow_cell)
     close gcf
 end
+
