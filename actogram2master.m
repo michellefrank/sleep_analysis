@@ -174,4 +174,5 @@ for j=1:rainbowgroups_n
     set(gcf,'Color',[1,1,1])
     
     export_fig(fullfile(export_path,[filename_master(1:end-5),'_',num2str(rainbowgroups_unique(j)),'_rainbow.pdf']));
+    close gcf
 end
