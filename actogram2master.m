@@ -54,7 +54,7 @@ h = waitbar(3/master_lines_to_read,'Processing');
 
 % Read from the 3rd line (the first two lines are dedicated to initiation and end dates)
 ii=3;
-while ii<master_lines_to_read
+while ii<=master_lines_to_read
     % Determine which line of the parameter file to read
     current_line_to_read=ii-2;
     
