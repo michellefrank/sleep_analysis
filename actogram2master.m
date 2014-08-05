@@ -89,7 +89,7 @@ for ii = 1:n_genos
     master_output_cell{ii+1,1} = genos{ii};
     
     % Second column shows how many flies loaded
-    master_output_cell{ii+1,2} = master_direction.data(ii,1);
+    master_output_cell{ii+1,2} = master_data_struct(ii).num_processed_flies;
     
     % Third column shows how many flies remained alive at the end
     master_output_cell{ii+1,3} = master_data_struct(ii).num_alive_flies;
