@@ -131,7 +131,7 @@ save(fullfile(export_path,[filename_master(1:end-5),'_workspace.mat']));
 
 % Save the actograms
 for ii = 1:n_genos
-    %actogramprint(master_data_struct(ii).data, time_bounds, mat_bounds , n_days, export_path, [filename_master(1:end-5),'_',genos{ii}], [monitor_data.textdata{1,2}, ' ',genos{ii}])
+    actogramprint(master_data_struct(ii).data, time_bounds, mat_bounds , n_days, export_path, [filename_master(1:end-5),'_',genos{ii}], [monitor_data.textdata{1,2}, ' ',genos{ii}])
 end
 
 %% Rainbow plots
@@ -140,11 +140,12 @@ rainbowgroups_vector = cell2mat({master_data_struct.rainbowgroup})';
 
 % Determine the unique rainbow groups (ignoring the NaNs) and their count
 rainbowgroups_unique = unique(rainbowgroups_vector(rainbowgroups_vector>-99999),'stable');
+rainbowgroups_unique=rainbowgroups_unique(rainbowgroups_unique~=0); %Group 0 reserved for universal controls
 rainbowgroups_n = length(rainbowgroups_unique);
 
 for j = 1:rainbowgroups_n
     % Find how many and which genotypes are of the current rainbow group
-    geno_indicies_of_the_current_rainbowgroup = find(rainbowgroups_vector == rainbowgroups_unique(j));
+    geno_indicies_of_the_current_rainbowgroup = [find(rainbowgroups_vector == rainbowgroups_unique(j));find(rainbowgroups_vector == 0)]; % Plot the current group and Group 0
     n_geno_of_the_current_rainhowgroup = length(geno_indicies_of_the_current_rainbowgroup);
     
     % Prime the rainbow data matrix
