@@ -200,29 +200,34 @@ for j = 1:rainbowgroups_n
     
     % Create the daily rainbox plots
     plotsizevec=[50,50,1200,600];%This size vector can be changed by the user to customize the plot size. Format ([X_position, Y_position, Width, Height]).
-    figure(102)
-    set(102,'Position',plotsizevec);
-    errorbar(rainbow_mat_tape,rainbow_mat_sem_tape,'-o','LineWidth',1.5);
-    axis([1,size(master_data_struct(1).data,1)/6+1,0,30])
-    set(gca,'XTick',1:8:size(master_data_struct(1).data,1)/6+1);
-    % Make daily separaters
-    for i=1:size(master_data_struct(1).data,1)/288-1
-        hold on
-        line([48*i+1,48*i+1],[0,30],'Color',[0 0 0]);
-        hold off
+    panels2print = min(n_days,9);
+    pages2print = 0;
+    while panels2print > 0
+        figure(102)
+        set(102,'Position',plotsizevec);
+        for k=1:n_days
+            subplot(3,3,k)
+            errorbar(rainbow_mat_tape((k-1)*48+1:(k-1)*48+48,:),rainbow_mat_sem_tape((k-1)*48+1:(k-1)*48+48,:),'-o','LineWidth',1.3,'MarkerSize',2);
+            axis([1,49,0,30])
+            set(gca,'XTick',1:8:49);
+            rainbow_tape_xlabel_cell = {'8','12','16','20','24','4','8'};
+            set(gca,'XTickLabel',rainbow_tape_xlabel_cell)
+            if k==n_days
+                legend({master_data_struct(geno_indicies_of_the_current_rainbowgroup).genotype},'Location', 'SouthEast')
+            end
+            xlabel('Time')
+            ylabel('sleep per 30 min (min)')
+            set(gcf,'Color',[1,1,1])
+        end
+        if panels2print > 6
+            tightfig;
+        end
+        set(102,'Position',plotsizevec);
+        panels2print=panels2print-9;
+        pages2print=pages2print+1;
+        savefig(fullfile(export_path,[filename_master(1:end-5),'_',num2str(rainbowgroups_unique(j)),'_',num2str(pages2print),'_dailyrainbow.fig']));
+        close(102)
     end
-    rainbow_tape_xlabel_cell = cell(1,size(master_data_struct(1).data,1)/288*6+1);
-    rainbow_tape_xlabel_cell(1:end-1) = repmat({'8','12','16','20','24','4'},[1,size(master_data_struct(1).data,1)/288]);
-    rainbow_tape_xlabel_cell{end} = '8';
-    set(gca,'XTickLabel',rainbow_tape_xlabel_cell)
-    legend({master_data_struct(geno_indicies_of_the_current_rainbowgroup).genotype},'Location', 'SouthEastOutside')
-    xlabel('Time')
-    ylabel('sleep per 30 min (min)')
-    set(gcf,'Color',[1,1,1])
-    tightfig;
-    set(102,'Position',plotsizevec);
-    savefig(fullfile(export_path,[filename_master(1:end-5),'_',num2str(rainbowgroups_unique(j)),'_dailyrainbow.fig']));
-    close(102)
 end
 
 %% Periodicity (testing)
@@ -245,3 +250,4 @@ xlabel('Period (hour)')
 ylabel('Power')
 title('{\bf Periodogram}')
 %}
+
