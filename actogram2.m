@@ -339,7 +339,7 @@ if master_mode==1
         current_geno_index=find(strcmp(genos,current_geno));
         
         % Find the number of flies with the current genotype
-        n_channels_of_current_geno=master_direction.data(ii+jj-3,1);
+        n_channels_of_current_geno=master_direction.data(ii+jj-1,1);
         
         % Calculate the number of dead flies
         n_dead_flies=sum(dead_fly_vector(current_channel:current_channel+n_channels_of_current_geno-1));

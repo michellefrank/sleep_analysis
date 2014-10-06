@@ -5,7 +5,7 @@
 
 % Label batch processing and read the batch processing parameter file 
 master_mode = 1;
-[filename_master, pathname]  =  uigetfile('C:\Users\Stephen Zhang\Documents\MATLAB\*.xlsx'); % This address should be changed according to the user
+[filename_master, pathname]  =  uigetfile('C:\Users\Stephen Zhang\Documents\MATLAB\*.xls'); % This address should be changed according to the user
 
 %% Processing the parameter files
 % Load the parameter file in to RAM
@@ -70,7 +70,7 @@ while ii<= master_lines_to_read
     n_genos_of_current_monitor = sum(strcmp(master_direction.textdata(:,1),current_monitor_name));
     
     % Use the actogram2 code to read the monitor
-    actogram2pc_batch;
+    actogram2;
     
     % Determine which line to read next from the next monitor file
     ii = ii+n_genos_of_current_monitor;
