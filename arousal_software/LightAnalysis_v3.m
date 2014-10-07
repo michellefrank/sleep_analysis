@@ -6,7 +6,8 @@
 %% Set global parameters
 
 % Enter the expirment date
-expDate = '2014-05-24';
+expFile = '2014-06-30B';
+expDate = expFile(1:10);
 
 % Set the root directory and extension to save the files
 root_dir = '/Users/michelle/Documents/flies/light';
@@ -24,7 +25,7 @@ norm_offset = 20;
 %% Import metadata and environmental monitor
 
 % Import metadata
-expInfo = ReadYaml([fullfile(root_dir, 'Metadata',expDate),'.yaml']);
+expInfo = ReadYaml([fullfile(root_dir, 'Metadata',expFile),'.yaml']);
 
 % Import environmental monitor
 envMonitor = readEnvMonitor(expInfo,root_dir);
@@ -41,7 +42,7 @@ light_intensities = envMonitor.data(:,9);
 stim_indices = [];
 
 %Search through environmental monitor for places where the light was on
-stim_indices = find(light_intensities > 10);
+stim_indices = find(light_intensities > 50);
 
 %Set up array to hold info about the windows
 stim_windows = {};
@@ -92,12 +93,106 @@ end
 
 
 %% Search through fly monitors for activity for each of the given genotypes
-% The findWake function imports the relevant data and saves the info to a
-% csv file
+% The findWake function imports the relevant data and parses arousal
+% responses.
+
+% Create cell array of structs to house all of the data
+wakeResults = {};
 
 for i = 1:length(expInfo.flies)
     
-    findWake(expInfo.flies{i}, expInfo, stim_windows, numStim, root_dir, save_path, norm_offset);
+    wakeResults{i} = struct;
+    wakeResults{i}.genotype = expInfo.flies{i}.genotype;
+    
+    [wakeResults{i}.wakeResults, wakeResults{i}.sleepActivity, wakeResults{i}.wakeActivity, wakeResults{i}.controlActivity] = findWake(expInfo.flies{i}, expInfo, stim_windows, numStim, root_dir, save_path, norm_offset);
     
 end
 
+%% Print aggregate info to a csv
+
+% Create cell to hold all of the aggregate stuff
+wakeFinal = {'Genotype', 'Stimulus Number', 'Stim Intensity', 'Normalized Percent Awakened', 'Percent Awakened', 'Percent Spontaneous'};
+
+index = 2;
+
+for i = 1:length(wakeResults)
+    
+    for j = 1:numStim
+        wakeFinal{index,1} = wakeResults{i}.genotype;
+        wakeFinal{index,2} = wakeResults{i}.wakeResults(j,1);
+        wakeFinal{index,3} = wakeResults{i}.wakeResults(j,2);
+        wakeFinal{index,4} = wakeResults{i}.wakeResults(j,3);
+        wakeFinal{index,5} = wakeResults{i}.wakeResults(j,4);
+        wakeFinal{index,6} = wakeResults{i}.wakeResults(j,5);
+        index = index + 1;
+    end
+    
+end
+
+% Export that data to a csv
+fileSaveDir = [fullfile(root_dir, save_path), '/results.csv'];
+   
+cell2csv(fileSaveDir, wakeFinal);
+
+
+%% Do the same for activity computations
+
+activity_wake = {'Genotype', 'Intensity', 'Activity'};
+activity_sleep = {'Genotype', 'Intensity', 'Activity'};
+
+index_sleep = 2;
+index_wake = 2;
+
+% control activity: export cell of form 'genotype, mean, sem, n'
+
+control_activity = {'Genotype', 'Mean', 'SEM', 'n'};
+index_ctl = 2;
+
+for i = 1:length(wakeResults)
+    
+    control_activity{index_ctl,1} = wakeResults{i}.genotype;
+    control_activity{index_ctl,2} = mean(wakeResults{i}.controlActivity);
+    control_activity{index_ctl,3} = stderr(wakeResults{i}.controlActivity);
+    control_activity{index_ctl,4} = length(wakeResults{i}.controlActivity);
+    
+    index_ctl = index_ctl + 1;
+    
+    for j = 1:length(wakeResults{i}.sleepActivity)
+        activity_sleep{index_sleep,1} = wakeResults{i}.genotype;
+        activity_sleep{index_sleep,2} = wakeResults{i}.sleepActivity(j,1);
+        activity_sleep{index_sleep,3} = wakeResults{i}.sleepActivity(j,2);
+        index_sleep = index_sleep + 1;
+    end
+    
+    for k = 1:length(wakeResults{i}.wakeActivity)
+        activity_wake{index_wake,1} = wakeResults{i}.genotype;
+        activity_wake{index_wake,2} = wakeResults{i}.wakeActivity(k,1);
+        activity_wake{index_wake,3} = wakeResults{i}.wakeActivity(k,2);
+        index_wake = index_wake + 1;
+    end
+    
+end
+    
+cell2csv([fullfile(root_dir, save_path), '/activity_wake.csv'], activity_wake);
+cell2csv([fullfile(root_dir, save_path), '/activity_sleep.csv'], activity_sleep);
+cell2csv([fullfile(root_dir, save_path), '/activity_control.csv'], control_activity);
+
+
+
+%% Analyze
+
+%{
+% Find intensity values used
+intensity_vals = unique(wakeResults{1}.wakeResults(:,2));
+
+
+for i = 1:length(wakeResults)
+    
+    wakeResults{i}.analyzed = {};
+    
+    for j = length(intensity_vals)
+        wakeResults.analyzed{i} = struct;
+        wakeResults.analyzed{i}.intensity = intensity_vals(j);
+        
+        ixs = find(
+%}

@@ -1,4 +1,4 @@
-function consolidatedFlies = getIsSleepingSpont2(checkStruct, flies, norm_offset)
+function [consolidatedFlies, controlActivity] = getIsSleepingSpont2(checkStruct, flies, norm_offset)
 % Outputs both a struct and an array of sleeping flies from a given night if passed
 % information about stimulus onset/offset and a struct containing data for
 % the night of interest. The main difference between flyArray and
@@ -78,12 +78,16 @@ for i = 1:nightlyStimPulses
     
 end
 
+controlActivity = [];
+
 % Find flies that woke up
 
 for i = 1:nightlyStimPulses
 
     for j = 1:numFlies
 
+        controlActivity(i,j) = sum(flies.data(nightWindows{i}.checkWake,j));
+        
         if find(flies.data(nightWindows{i}.checkSleep,j)) %If there's any activity in the window before the stim, classify sleep as false
             flyArray{i,j}.isSleep = 0;
         else
@@ -101,6 +105,8 @@ for i = 1:nightlyStimPulses
     end
     
 end
+
+controlActivity = reshape(controlActivity, [], 1);
 
 %Rearrange stuff into an array of form [stimNum fliesWaking] for each stimulus
 
