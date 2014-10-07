@@ -24,10 +24,10 @@ genos = unique(genos,'stable');
 n_genos = size(genos,1);
 
 % Construct the master data file (in the structure form)
-master_data_struct = struct('genotype','','rainbowgroup',[],'num_alive_flies',0,'num_processed_flies',0,'alive_fly_indicies',[],'data',[],'sleep',[],'sleep_bout_lengths',[],'sleep_bout_numbers',[],'activities',[]);
+master_data_struct = struct('genotype','','rainbowgroup',[],'num_alive_flies',0,'num_processed_flies',0,'alive_fly_indices',[],'data',[],'sleep',[],'sleep_bout_lengths',[],'sleep_bout_numbers',[],'activities',[]);
 master_data_struct(1:n_genos,1) = master_data_struct;
 
-% Label the genotypes and rainbow indicies on the master data strcuture
+% Label the genotypes and rainbow indices on the master data strcuture
 for i = 1:n_genos
     % Label genotypes
     master_data_struct(i).genotype = genos{i};
@@ -145,8 +145,8 @@ rainbowgroups_n = length(rainbowgroups_unique);
 
 for j = 1:rainbowgroups_n
     % Find how many and which genotypes are of the current rainbow group
-    geno_indicies_of_the_current_rainbowgroup = [find(rainbowgroups_vector == rainbowgroups_unique(j));find(rainbowgroups_vector == 0)]; % Plot the current group and Group 0
-    n_geno_of_the_current_rainhowgroup = length(geno_indicies_of_the_current_rainbowgroup);
+    geno_indices_of_the_current_rainbowgroup = [find(rainbowgroups_vector == rainbowgroups_unique(j));find(rainbowgroups_vector == 0)]; % Plot the current group and Group 0
+    n_geno_of_the_current_rainhowgroup = length(geno_indices_of_the_current_rainbowgroup);
     
     % Prime the rainbow data matrix
     rainbow_mat = zeros(48,n_geno_of_the_current_rainhowgroup);
@@ -161,18 +161,18 @@ for j = 1:rainbowgroups_n
         % Calculate the average and std/sem sleep per 5 min and 30 min of one genotype
         % Also calculate the day-by-day rainbow data (tape, inspired by the Turing machine)
         % (Ignoring dead flies)
-        temp_average_sleep_per_5_min_tape = mean(master_data_struct(geno_indicies_of_the_current_rainbowgroup(i)).data(:,master_data_struct(geno_indicies_of_the_current_rainbowgroup(i)).alive_fly_indicies>0) == 0,2)*5;
-        temp_std_sleep_per_5_min_tape = std((master_data_struct(geno_indicies_of_the_current_rainbowgroup(i)).data(:,master_data_struct(geno_indicies_of_the_current_rainbowgroup(i)).alive_fly_indicies>0) == 0)*5,1,2);
-        temp_average_sleep_per_5_min = mean(reshape(master_data_struct(geno_indicies_of_the_current_rainbowgroup(i)).data(:,master_data_struct(geno_indicies_of_the_current_rainbowgroup(i)).alive_fly_indicies>0) == 0,288,[]),2)*5;
-        temp_std_sleep_per_5_min = std(reshape(master_data_struct(geno_indicies_of_the_current_rainbowgroup(i)).data(:,master_data_struct(geno_indicies_of_the_current_rainbowgroup(i)).alive_fly_indicies>0) == 0,288,[])*5,1,2);
+        temp_average_sleep_per_5_min_tape = mean(master_data_struct(geno_indices_of_the_current_rainbowgroup(i)).data(:,master_data_struct(geno_indices_of_the_current_rainbowgroup(i)).alive_fly_indices>0) == 0,2)*5;
+        temp_std_sleep_per_5_min_tape = std((master_data_struct(geno_indices_of_the_current_rainbowgroup(i)).data(:,master_data_struct(geno_indices_of_the_current_rainbowgroup(i)).alive_fly_indices>0) == 0)*5,1,2);
+        temp_average_sleep_per_5_min = mean(reshape(master_data_struct(geno_indices_of_the_current_rainbowgroup(i)).data(:,master_data_struct(geno_indices_of_the_current_rainbowgroup(i)).alive_fly_indices>0) == 0,288,[]),2)*5;
+        temp_std_sleep_per_5_min = std(reshape(master_data_struct(geno_indices_of_the_current_rainbowgroup(i)).data(:,master_data_struct(geno_indices_of_the_current_rainbowgroup(i)).alive_fly_indices>0) == 0,288,[])*5,1,2);
         
         temp_average_sleep_per_30_min_tape = sum(reshape(temp_average_sleep_per_5_min_tape,6,[]))';
-        temp_sem_sleep_per_30_min_tape = sqrt(sum(reshape(temp_std_sleep_per_5_min_tape,6,[]).^2)')/sqrt(master_data_struct(geno_indicies_of_the_current_rainbowgroup(i)).num_alive_flies);
+        temp_sem_sleep_per_30_min_tape = sqrt(sum(reshape(temp_std_sleep_per_5_min_tape,6,[]).^2)')/sqrt(master_data_struct(geno_indices_of_the_current_rainbowgroup(i)).num_alive_flies);
         temp_average_sleep_per_30_min = sum(reshape(temp_average_sleep_per_5_min,6,[]))';
-        temp_sem_sleep_per_30_min  =  sqrt(sum(reshape(temp_std_sleep_per_5_min,6,[]).^2)')/sqrt(master_data_struct(geno_indicies_of_the_current_rainbowgroup(i)).num_alive_flies);
+        temp_sem_sleep_per_30_min  =  sqrt(sum(reshape(temp_std_sleep_per_5_min,6,[]).^2)')/sqrt(master_data_struct(geno_indices_of_the_current_rainbowgroup(i)).num_alive_flies);
         
-        rainbow_cell{1,i} = genos{geno_indicies_of_the_current_rainbowgroup(i)};
-        rainbow_cell{2,i} = master_data_struct(geno_indicies_of_the_current_rainbowgroup(i)).num_alive_flies;
+        rainbow_cell{1,i} = genos{geno_indices_of_the_current_rainbowgroup(i)};
+        rainbow_cell{2,i} = master_data_struct(geno_indices_of_the_current_rainbowgroup(i)).num_alive_flies;
         rainbow_cell(3:50,i) = num2cell(temp_average_sleep_per_30_min);
         rainbow_cell(51:98,i) = num2cell(temp_sem_sleep_per_30_min);
         % Put the data in the rainbow matrices
@@ -187,7 +187,7 @@ for j = 1:rainbowgroups_n
     axis([1,49,0,30])
     set(gca,'XTick',1:8:49)
     set(gca,'XTickLabel',{'8','12','16','20','24','4','8'})
-    legend({master_data_struct(geno_indicies_of_the_current_rainbowgroup).genotype},'Location', 'SouthEast')
+    legend({master_data_struct(geno_indices_of_the_current_rainbowgroup).genotype},'Location', 'SouthEast')
     xlabel('Time')
     ylabel('sleep per 30 min (min)')
     set(gcf,'Color',[1,1,1])
@@ -213,7 +213,7 @@ for j = 1:rainbowgroups_n
             rainbow_tape_xlabel_cell = {'8','12','16','20','24','4','8'};
             set(gca,'XTickLabel',rainbow_tape_xlabel_cell)
             if k==n_days
-                legend({master_data_struct(geno_indicies_of_the_current_rainbowgroup).genotype},'Location', 'SouthEast')
+                legend({master_data_struct(geno_indices_of_the_current_rainbowgroup).genotype},'Location', 'SouthEast')
             end
             xlabel('Time')
             ylabel('sleep per 30 min (min)')

@@ -358,8 +358,8 @@ if master_mode==1
         % Add the number of alive flies in the master structure
         master_data_struct(current_geno_index).num_alive_flies=master_data_struct(current_geno_index).num_alive_flies+n_channels_of_current_geno-n_dead_flies;
         
-        % Write the dead fly indicies to the master structure
-        master_data_struct(current_geno_index).alive_fly_indicies=[master_data_struct(current_geno_index).alive_fly_indicies;~dead_fly_vector(current_channel:current_channel+n_channels_of_current_geno-1)==1];
+        % Write the dead fly indices to the master structure
+        master_data_struct(current_geno_index).alive_fly_indices=[master_data_struct(current_geno_index).alive_fly_indices;~dead_fly_vector(current_channel:current_channel+n_channels_of_current_geno-1)==1];
         
         % Write the number of processed flies to the master structure
         master_data_struct(current_geno_index).num_processed_flies=master_data_struct(current_geno_index).num_processed_flies+n_channels_of_current_geno;
