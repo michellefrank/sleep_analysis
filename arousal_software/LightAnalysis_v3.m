@@ -5,12 +5,13 @@
 
 %% Set global parameters
 
-% Enter the expirment date
-expFile = '2014-06-30B';
+% Enter the experiment date
+expFile = '2014-10-02';
 expDate = expFile(1:10);
 
 % Set the root directory and extension to save the files
-root_dir = '/Users/michelle/Documents/flies/light';
+root_dir = '/Users/michelle/Documents/flies/Joinage';
+specific_dir = uigetdir(root_dir);
 
 % Set the number of bins to check for sleep before a stimulus
 sleep_delay = 12; %6 min
@@ -25,21 +26,18 @@ norm_offset = 20;
 %% Import metadata and environmental monitor
 
 % Import metadata
-expInfo = ReadYaml([fullfile(root_dir, 'Metadata',expFile),'.yaml']);
+expInfo = ReadYaml([fullfile(specific_dir,expFile),'.yaml']);
 
 % Import environmental monitor
-envMonitor = readEnvMonitor(expInfo,root_dir);
+%envMonitor = readEnvMonitor(expInfo,root_dir);
+
 
 % Set the path to save the files to (based on default structure + info from
 % expInfo)
 
-save_path = fullfile('AnalyzedData',['Group-',num2str(expInfo.group_num)], expDate);
+save_path = ['Group-',num2str(expInfo.group_num)];
 
-%% Find places in environment monitor with lights on
-
-light_intensities = [];
-light_intensities = envMonitor.data(:,9);
-stim_indices = [];
+%% Find places in environment monitor with stim on
 
 %Search through environmental monitor for places where the light was on
 stim_indices = find(light_intensities > 50);
