@@ -35,14 +35,11 @@ envMonitor = readEnvMonitor(expInfo,root_dir);
 
 save_path = fullfile('AnalyzedData',['Group-',num2str(expInfo.group_num)], expDate);
 
-%% Find places in environment monitor with lights on
-
-light_intensities = [];
-light_intensities = envMonitor.data(:,9);
+%% Find indices corresponding to stimulus onset
 stim_indices = [];
 
 %Search through environmental monitor for places where the light was on
-stim_indices = find(light_intensities > 50);
+stim_indices = ;
 
 %Set up array to hold info about the windows
 stim_windows = {};
