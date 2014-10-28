@@ -5,7 +5,15 @@
 
 % Label batch processing and read the batch processing parameter file 
 master_mode = 1;
-[filename_master, pathname]  =  uigetfile('C:\Users\Stephen Zhang\Documents\MATLAB\*.xls'); % This address should be changed according to the user
+settings_file = importdata('actogram2_settings.csv');
+monitor_dir = settings_file{1};
+monitor_dir = monitor_dir(strfind(monitor_dir, ',')+1:end);
+export_path = settings_file{2};
+export_path = export_path(strfind(export_path, ',')+1:end);
+PC_or_not = settings_file{3};
+PC_or_not = PC_or_not(strfind(PC_or_not, ',')+1:end)=='Y';
+
+[filename_master, pathname]  =  uigetfile(monitor_dir); % This address should be changed according to the user
 
 %% Processing the parameter files
 % Load the parameter file in to RAM
@@ -24,7 +32,7 @@ genos = unique(genos,'stable');
 n_genos = size(genos,1);
 
 % Construct the master data file (in the structure form)
-master_data_struct = struct('genotype','','rainbowgroup',[],'num_alive_flies',0,'num_processed_flies',0,'alive_fly_indices',[],'data',[],'sleep',[],'sleep_bout_lengths',[],'sleep_bout_numbers',[],'activities',[]);
+master_data_struct = struct('genotype','','rainbowgroup',[],'num_alive_flies',0,'num_processed_flies',0,'alive_fly_indices',[],'data',[],'sleep',[],'sleep_bout_lengths',[],'sleep_bout_numbers',[],'activities',[],'delays',[]);
 master_data_struct(1:n_genos,1) = master_data_struct;
 
 % Label the genotypes and rainbow indices on the master data strcuture
@@ -79,10 +87,10 @@ close(h)
 
 %% Output files
 % Prime the the cell to write data in
-master_output_cell = cell(n_genos+1,12);
+master_output_cell = cell(n_genos+1,13);
 master_output_cell(1,:) = {'geno','# loaded','# alive','total sleep','day sleep',...
     'night sleep','day bout length','night bout length','day bout number',...
-    'night bout number','day activity','night activity'};
+    'night bout number','day activity','night activity','delays'};
 
 for ii = 1:n_genos
     % First column shows the genotypes
@@ -120,6 +128,9 @@ for ii = 1:n_genos
     
     % Twelfth column shows average night-time activity per genotype
     master_output_cell{ii+1,12} = nanmean(master_data_struct(ii).activities(:,2));
+    
+    % Thirteenth column shows average night-time delay per genotype
+    master_output_cell{ii+1,13} = nanmean(master_data_struct(ii).delays);
 end
 
 
@@ -131,7 +142,7 @@ save(fullfile(export_path,[filename_master(1:end-5),'_workspace.mat']));
 
 % Save the actograms
 for ii = 1:n_genos
-    actogramprint(master_data_struct(ii).data, time_bounds, mat_bounds , n_days, export_path, [filename_master(1:end-5),'_',genos{ii}], [monitor_data.textdata{1,2}, ' ',genos{ii}])
+    actogramprint(master_data_struct(ii).data, time_bounds, mat_bounds , n_days, export_path, [filename_master(1:end-5),'_',genos{ii}], [monitor_data.textdata{1,2}, ' ',genos{ii}],PC_or_not)
 end
 
 %% Rainbow plots
@@ -193,8 +204,8 @@ for j = 1:rainbowgroups_n
     set(gcf,'Color',[1,1,1])
     
     % Save the fig and the data
-    export_fig(fullfile(export_path,[filename_master(1:end-5),'_',num2str(rainbowgroups_unique(j)),'_rainbow.pdf']));
-    % savefig(fullfile(export_path,[filename_master(1:end-5),'_',num2str(rainbowgroups_unique(j)),'_rainbow.fig']));
+    % saveas(fullfile(export_path,[filename_master(1:end-5),'_',num2str(rainbowgroups_unique(j)),'_rainbow.pdf']));
+    savefig(fullfile(export_path,[filename_master(1:end-5),'_',num2str(rainbowgroups_unique(j)),'_rainbow.fig']));
     cell2csv(fullfile(export_path,[filename_master(1:end-5),'_',num2str(rainbowgroups_unique(j)),'_rainbowdata.csv']),rainbow_cell)
     close gcf
     
@@ -225,8 +236,7 @@ for j = 1:rainbowgroups_n
         set(102,'Position',plotsizevec);
         panels2print=panels2print-9;
         pages2print=pages2print+1;
-        export_fig(fullfile(export_path,[filename_master(1:end-5),'_',num2str(rainbowgroups_unique(j)),'_',num2str(pages2print),'_dailyrainbow.fig']));
-        %savefig(fullfile(export_path,[filename_master(1:end-5),'_',num2str(rainbowgroups_unique(j)),'_',num2str(pages2print),'_dailyrainbow.fig']));
+        savefig(fullfile(export_path,[filename_master(1:end-5),'_',num2str(rainbowgroups_unique(j)),'_',num2str(pages2print),'_dailyrainbow.fig']));
         close(102)
     end
 end

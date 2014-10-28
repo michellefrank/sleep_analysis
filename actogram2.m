@@ -2,8 +2,6 @@
 % Written by Stephen Zhang 2014-5-14
 % Will [probably] *definitely* be made better by Michelle Frank
 
-% This version is now compatible with batch processing 
-
 %% Batch processing initiation
 if exist('master_mode','var')==0
     master_mode=0;
@@ -12,10 +10,14 @@ end
 %% Import initial data
 % Get the file and start the drama
 if master_mode==0
-    [filename, pathname] = uigetfile('/Users/michelle/Documents/flies/light/Monitors/*.txt');
+    settings_file = importdata('actogram2_settings.xlsx');
+    monitor_dir = settings_file{1};
+    monitor_dir = monitor_dir(strfind(monitor_dir, ',')+1:end);
+    export_path = settings_file{2};
+    export_path = export_path(strfind(export_path, ',')+1:end);
+    [filename, pathname] = uigetfile(monitor_dir);
 end
-    
-export_path = '/Users/michelle/Documents/flies/light/AnalyzedData';
+
 
 % Master data structure file, separated into textdata and data
 monitor_data=importdata(fullfile(pathname,filename));
@@ -139,7 +141,7 @@ if master_mode==0
                     /100/n_days+(n_days-i)/n_days); % Normalize against 100 and divide each panel into days
                 line([8,32],[(n_days-i)/n_days,(n_days-i)/n_days],'Color',[0 0 0]); % This is a line per request of Michelle
                 set(bbar,'EdgeColor',[0 0 0]) % Set the bar edge color to black. One vote for purple [153/255 102/255 204/255] from Stephen. RIP teal (2014-2014): [0 128/255 128/255].
-                set(bbar,'FaceColor',[0 0 0]) % Set the bar face color to black. One vote for purple from Stephen. RIP teal (2014-2014): [0 128/255 128/255].
+                set(bbar,'FaceColor',[0 0 0]) % Set the bar face color to black. One vote for purple from Stephen. RIP teal (2014-2014).
                 set(bbar,'BaseValue',(n_days-i)/n_days); % Elevate the bars to restrict them to their own little sub-panels
             end
 
@@ -159,16 +161,17 @@ if master_mode==0
         end
 
         % Make figures look tighter
-        if min(panels_per_page,32-panels_done)>4
-            tightfig;
-        end
+        tightfig;
 
         % Resize the figures to fit on a piece of paper better (could be improved)
         set(gcf,'Position',[0 0 1400 1000],'Color',[1 1 1])
 
         % Export and append the pdf files
-        export_fig(fullfile(export_path,[filename(1:end-4),'_actogram_', num2str(k), '.pdf']));
-        % export_fig(fullfile(export_path,[filename(1:end-4),'_actogram.pdf']),'-append');
+        if PC_or_not
+            export_fig(fullfile(export_path,[filename(1:end-4),'_actogram.pdf']),'-append');
+        else
+            saveas(gcf,fullfile(export_path,[filename(1:end-4),'_actogram_', num2str(k), '.pdf']));
+        end
         close 101
         panels_done=panels_done+panels_per_page;
     end
@@ -219,7 +222,7 @@ end
 % Calculate the sleep results accordingly
 sleep_results=zeros(size(sleep_bounds,1),32);
 for i=1:n_sleep_bounds
-sleep_results(i,:)=(sum(sleep_mat(sleep_bounds(i,1):sleep_bounds(i,2),:)))*5;
+    sleep_results(i,:)=(sum(sleep_mat(sleep_bounds(i,1):sleep_bounds(i,2),:)))*5;
 end
 
 % If the last day/night sleep data are incomplete, they are discarded.
@@ -254,6 +257,7 @@ avg_sleep_results(dead_fly_vector,:)=NaN;
 sleep_bout_num=zeros(n_sleep_bounds,32);
 sleep_bout_length=zeros(n_sleep_bounds,32);
 activity_mat=zeros(n_sleep_bounds,32);
+delay_mat=zeros(floor(n_sleep_bounds/2),32);
 
 % For each fly loaded, do the following...
 for i=1:32
@@ -267,6 +271,11 @@ for i=1:32
         % Use the function "chainfinder" to find sleep bouts
         % See the function description for the explanation of the function output
         tempsleepchainmat=chainfinder(tempsleepvec);
+        
+        % Use the sleepchain matrix to determine the sleep delay
+        if mod(j,2)==0
+            delay_mat(j/2,i)=tempsleepchainmat(1);
+        end
         
         % Obtain the number of bouts from the chainfinder results
         sleep_bout_num(j,i)=size(tempsleepchainmat,1);
@@ -310,11 +319,16 @@ avg_activity_mat(:,2)=mean(activity_mat(:,2:2:n_sleep_bounds),2);
 avg_activity_mat(dead_fly_vector,:)=NaN;
 % xlswrite(fullfile(export_path,[filename(1:end-4),'_activities.xls']),avg_activity_mat);
 
+% disp('Delays')
+avg_delay_mat=(5*mean(delay_mat-1))';
+avg_delay_mat(dead_fly_vector,:)=NaN;
+
+
 % Construct a single output cell for the current monitor
-monitor_output_cell=cell(33,9);
+monitor_output_cell=cell(33,10);
 monitor_output_cell(1,:)={'total sleep','day sleep','night sleep','day bout length','night bout length',...
-    'day bout number','night bout number','day activity','night activity'};
-monitor_output_cell(2:33,:)=num2cell([avg_sleep_results,avg_sleep_bout_length,avg_sleep_bout_num,avg_activity_mat]);
+    'day bout number','night bout number','day activity','night activity','delay'};
+monitor_output_cell(2:33,:)=num2cell([avg_sleep_results,avg_sleep_bout_length,avg_sleep_bout_num,avg_activity_mat,avg_delay_mat]);
 
 % Output the cell to a csv file
 cell2csv(fullfile(export_path,[filename(1:end-4),'_monitor_data.csv']),monitor_output_cell);
@@ -339,7 +353,7 @@ if master_mode==1
         current_geno_index=find(strcmp(genos,current_geno));
         
         % Find the number of flies with the current genotype
-        n_channels_of_current_geno=master_direction.data(ii+jj-1,1);
+        n_channels_of_current_geno=master_direction.data(ii+jj-3,1);
         
         % Calculate the number of dead flies
         n_dead_flies=sum(dead_fly_vector(current_channel:current_channel+n_channels_of_current_geno-1));
@@ -358,6 +372,9 @@ if master_mode==1
         
         % Write the activities to the master structure
         master_data_struct(current_geno_index).activities=[master_data_struct(current_geno_index).activities;avg_activity_mat(current_channel:current_channel+n_channels_of_current_geno-1,:)];
+        
+        % Write the delays to the master structure
+        master_data_struct(current_geno_index).delays=[master_data_struct(current_geno_index).delays;avg_delay_mat(current_channel:current_channel+n_channels_of_current_geno-1,:)];
         
         % Add the number of alive flies in the master structure
         master_data_struct(current_geno_index).num_alive_flies=master_data_struct(current_geno_index).num_alive_flies+n_channels_of_current_geno-n_dead_flies;
